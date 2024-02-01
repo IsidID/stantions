@@ -3,6 +3,7 @@
     "node-fetch": "2"
   },
   "scripts": {
+    "start": "node server.js",
     "build": "webpack"
   },
   "devDependencies": {
