@@ -2,61 +2,52 @@ const http = require('http');
 const fetch = require('node-fetch');
 const fs = require('fs/promises');
 
-const generateHTML = async () => {
-  try {
-    const htmlString = await fetch('https://net.tnt-tpi.com/page').then((response) => response.text());
-    const regex = /<script type="text\/javascript">(.*?)<\/script>/s;
-    const match = htmlString.match(regex);
+const server = http.createServer((req, res) => {
+  // Handle the new route for updating data
+  if (req.url === '/update-data') {
+    fetchData()
+      .then((data) => {
+        // Send the updated data in JSON format
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(data));
+      })
+      .catch((error) => {
+        res.writeHead(500, { 'Content-Type': 'text/plain' });
+        res.end(`Error fetching data: ${error.message}`);
+      });
+  } else {
+    // Handle other routes (e.g., serving static files)
+    // ...
 
-    let content;
-    if (match) {
-      const scriptCode = match[1].trim();
-      eval(scriptCode); // get bslist var here
-      const stations = bslist.filter((item) => ['CHTK', 'CHR2', 'GRD2', 'CHEM'].includes(item[0]));
-      content = `<ul>${stations
-        .map(
-          (item) =>
-            `<li>${item[3]}</li><li>Назва станції - ${item[0]}</li><li>Доступність - ${item[5]}</li>`
-        )
-        .join('</ul><ul>')}</ul>`;
-    } else {
-      content = 'no data';
-    }
+    // For example, you can still serve the HTML file
+    fs.readFile('dist/index.html', 'utf-8')
+      .then((content) => {
+        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+        res.end(content);
+      })
+      .catch((error) => {
+        res.writeHead(500, { 'Content-Type': 'text/plain' });
+        res.end(`Error serving HTML file: ${error.message}`);
+      });
+  }
+});
 
-    const htmlContent = `<!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1">
-          <title>Strange things</title>
-        </head>
-        <body><button onclick="location.reload();">Refresh</button>${content}</body>
-      </html>`;
+const port = process.env.PORT || 3000;
+server.listen(port, () => {
+  console.log(`Server is running at http://localhost:${port}/`);
+});
 
-    await fs.writeFile('dist/index.html', htmlContent, 'utf-8');
-    console.log('index.html generated successfully.');
-  } catch (error) {
-    console.error('Error generating index.html:', error);
+const fetchData = async () => {
+  const response = await fetch('https://net.tnt-tpi.com/page');
+  const htmlString = await response.text();
+  const regex = /<script type="text\/javascript">(.*?)<\/script>/s;
+  const match = htmlString.match(regex);
+
+  if (match) {
+    const scriptCode = match[1].trim();
+    eval(scriptCode); // get bslist var here
+    return bslist.filter((item) => ['CHTK', 'CHR2', 'GRD2', 'CHEM'].includes(item[0]));
+  } else {
+    return [];
   }
 };
-
-if (!process.env.NETLIFY) {
-  // Only run the server if not in Netlify build environment
-  const server = http.createServer(async (req, res) => {
-    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-
-    // Generate index.html before responding to requests
-    await generateHTML();
-
-    // Read and send the generated index.html
-    const indexContent = await fs.readFile('dist/index.html', 'utf-8');
-    res.end(indexContent);
-  });
-
-  const port = process.env.PORT || 3000;
-  server.listen(port, () => {
-    console.log(`Server is running at http://localhost:${port}/`);
-  });
-} else {
-  console.log('Running in Netlify build environment. Server will not be started.');
-}
