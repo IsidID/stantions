@@ -33,8 +33,8 @@ const server = http.createServer((req, res) => {
     });
 });
 
-// Specify the port on which the server will listen
-const port = 3000;
+// Use the process.env.PORT or 3000 if not defined
+const port = process.env.PORT || 3000;
 
 // Start the server and listen on the specified port
 server.listen(port, () => {
