@@ -1,4 +1,0 @@
-[build]
-  command = "npm start"  # Adjust this based on your project's start script
-  functions = "dist/functions"  # Adjust this based on your build output directory
-  publish = "dist"  # Adjust this based on your project's output directory
