@@ -33,8 +33,9 @@ if (!process.env.NETLIFY) {
           <title>ДАНІ ПРО СТАНЦІЇ</title>
         </head>
         <body>
-          <h1>Last updated: ${currentDate}</h1>
-          <button onclick="location.reload();">Refresh</button>${content}
+          ${content}
+          <p>Last updated: ${currentDate}</p>
+          <button onclick="location.reload();">Refresh</button>
         </body>
       </html>`;
 
