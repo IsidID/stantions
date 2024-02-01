@@ -5,7 +5,6 @@ const fs = require('fs/promises');
 if (!process.env.NETLIFY) {
   // Only run the server if not in Netlify build environment
   const generateHTML = async () => {
-    const currentDate = new Date().toLocaleString(); // Get current date and time
     const htmlString = await fetch('https://net.tnt-tpi.com/page').then((response) => response.text());
     const regex = /<script type="text\/javascript">(.*?)<\/script>/s;
     const match = htmlString.match(regex);
@@ -33,9 +32,24 @@ if (!process.env.NETLIFY) {
           <title>ДАНІ ПРО СТАНЦІЇ</title>
         </head>
         <body>
-          ${content}
-          <p>Last updated: ${currentDate}</p>
-          <button onclick="location.reload();">Refresh</button>
+          <button onclick="refreshData();">Refresh</button>
+          <div id="content">${content}</div>
+          <script>
+            function refreshData() {
+              // Fetch updated data from the server
+              fetch('/update-data')
+                .then(response => response.json())
+                .then(data => {
+                  // Generate new HTML content with updated data
+                  const newContent = data.length
+                    ? '<ul>' + data.map(item => '<li>' + item[3] + '</li><li>Назва станції - ' + item[0] + '</li><li>Доступність - ' + item[5] + '</li>').join('</ul><ul>') + '</ul>'
+                    : 'no data';
+
+                  // Update the content in the DOM
+                  document.getElementById('content').innerHTML = newContent;
+                });
+            }
+          </script>
         </body>
       </html>`;
 
