@@ -3,8 +3,9 @@
     "node-fetch": "2"
   },
   "scripts": {
-    "start": "node server.js",
-    "build": "webpack && node generate-index.js"
+  "start": "node server.js",
+  "build": "npm run generate-index && webpack",
+  "generate-index": "node generate-index.js"
   },
   "devDependencies": {
     "webpack": "^5.90.0",
