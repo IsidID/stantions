@@ -14,33 +14,38 @@ const server = http.createServer((req, res) => {
       return;
     }
 
-    const regex = /<script type="text\/javascript">(.*?)<\/script>/s;
-    const match = htmlString.match(regex);
-    let content;
+    try {
+      const regex = /<script type="text\/javascript">(.*?)<\/script>/s;
+      const match = htmlString.match(regex);
+      let content;
 
-    if (match) {
-      const scriptCode = match[1].trim();
-      eval(scriptCode); // get bslist var here
-      const stations = bslist.filter((item) => ['CHTK', 'CHR2', 'GRD2', 'CHEM'].includes(item[0]));
-      content = `<ul>${stations
-        .map(
-          (item) =>
-            `<li>${item[3]}</li><li>Назва станції - ${item[0]}</li><li>Доступність - ${item[5]}</li>`
-        )
-        .join('</ul><ul>')}</ul>`;
-    } else {
-      content = 'no data';
+      if (match) {
+        const scriptCode = match[1].trim();
+        eval(scriptCode); // get bslist var here
+        const stations = bslist.filter((item) => ['CHTK', 'CHR2', 'GRD2', 'CHEM'].includes(item[0]));
+        content = `<ul>${stations
+          .map(
+            (item) =>
+              `<li>${item[3]}</li><li>Назва станції - ${item[0]}</li><li>Доступність - ${item[5]}</li>`
+          )
+          .join('</ul><ul>')}</ul>`;
+      } else {
+        content = 'no data';
+      }
+
+      res.end(`<!DOCTYPE html>
+                  <html>
+                    <head>
+                      <meta charset="utf-8">
+                      <meta name="viewport" content="width=device-width, initial-scale=1">
+                      <title>Strange things</title>
+                    </head>
+                    <body><button onclick="location.reload();">Refresh</button>${content}</body>
+                  </html>`);
+    } catch (error) {
+      console.error('Error:', error);
+      res.end('Error occurred during script execution');
     }
-
-    res.end(`<!DOCTYPE html>
-                <html>
-                  <head>
-                    <meta charset="utf-8">
-                    <meta name="viewport" content="width=device-width, initial-scale=1">
-                    <title>Strange things</title>
-                  </head>
-                  <body><button onclick="location.reload();">Refresh</button>${content}</body>
-                </html>`);
   });
 });
 
